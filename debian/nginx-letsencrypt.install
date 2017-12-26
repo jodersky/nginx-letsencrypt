@@ -1,0 +1,3 @@
+issue-certs-nginx usr/bin
+letsencrypt etc/nginx
+letsencryptdomains etc/nginx
