@@ -1,15 +1,14 @@
 Source: nginx-letsencrypt
-Section: unknown
+Section: utils
 Priority: optional
 Maintainer: Jakob Odersky <jakob@odersky.com>
 Build-Depends: debhelper (>= 9)
-Standards-Version: 3.9.8
-Homepage: <insert the upstream URL, if relevant>
-#Vcs-Git: https://anonscm.debian.org/collab-maint/nginx-letsencrypt.git
-#Vcs-Browser: https://anonscm.debian.org/cgit/collab-maint/nginx-letsencrypt.git
+Standards-Version: 4.1.2
+Vcs-Git: https://github.com/jodersky/nginx-letsencrypt.git
 
 Package: nginx-letsencrypt
 Architecture: all
 Depends: ${misc:Depends}
-Description: <insert up to 60 chars description>
- <insert long description, indented with spaces>
+Description: Issue certificates by letsencrypt for nginx virtual hosts.
+ Simplify the process by which letsencrypt certificates are issued for virtual
+ hosts controlled by nginx.
