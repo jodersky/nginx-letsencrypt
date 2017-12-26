@@ -18,39 +18,21 @@
 .\" .sp <n>    insert n+1 empty lines
 .\" for manpage-specific macros, see man(7)
 .SH NAME
-nginx-letsencrypt \- program to do something
+nginx-letsencrypt \- certificates for virtual hosts managed by nginx
 .SH SYNOPSIS
 .B nginx-letsencrypt
-.RI [ options ] " files" ...
-.br
-.B bar
-.RI [ options ] " files" ...
+.RI [ --test ]
 .SH DESCRIPTION
-This manual page documents briefly the
-.B nginx-letsencrypt
-and
-.B bar
-commands.
+Issue certificates from letsencrypt for virtual hosts managed by nginx.
 .PP
 .\" TeX users may be more comfortable with the \fB<whatever>\fP and
 .\" \fI<whatever>\fP escape sequences to invode bold face and italics,
 .\" respectively.
 \fBnginx-letsencrypt\fP is a program that...
 .SH OPTIONS
-These programs follow the usual GNU command line syntax, with long
-options starting with two dashes (`-').
-A summary of options is included below.
-For a complete description, see the Info files.
 .TP
-.B \-h, \-\-help
-Show summary of options.
-.TP
-.B \-v, \-\-version
-Show version of program.
+.B \--test
+Obtain a test certificate instead of a real one (this is useful to avoid rate-limiting).
 .SH SEE ALSO
-.BR bar (1),
-.BR baz (1).
-.br
-The programs are documented fully by
-.IR "The Rise and Fall of a Fooish Bar" ,
-available via the Info system.
+.BR nginx (8),
+.BR certbot (1).
