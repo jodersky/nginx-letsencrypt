@@ -1,0 +1,30 @@
+#!/bin/sh
+# Obtain or renew certificates from letsencrypt, to be used with nginx
+# webroot verification.
+#
+# Domains to be certified are defined in /etc/nginx/domains.
+#
+# The pre-hook is used to remove snakeoil certificates that are
+# required to bootstrap nginx configurations (nginx fails to start
+# without ssl certificates). The hook is required because certbot does
+# not overwrite foreign certificates, as described in this issue
+# https://github.com/certbot/certbot/issues/3396
+set -o exiterr
+set -o unset
+
+email="jakob@odersky.com"
+
+extra_flags=""
+if [ "$1" = --test ]; then
+    extra_flags="--test-cert"
+fi
+
+certbot certonly $extra_flags \
+	--noninteractive \
+	--agree-tos \
+	--email "$email" \
+	--cert-name nginx \
+	--webroot --webroot-path /var/www/letsencrypt \
+	--pre-hook "sh -c '(openssl x509 -in /etc/letsencrypt/live/nginx/fullchain.pem -noout -text) | grep --quiet letsencrypt || rm -r /etc/letsencrypt/live/nginx'" \
+	--post-hook "systemctl reload nginx" \
+	-d "$(grep "^[^#;]" /etc/nginx/letsencryptdomains | paste --delimiter=, --serial)"

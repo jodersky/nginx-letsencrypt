@@ -1,0 +1,8 @@
+# Virtual hosts for which SSL certificates will be issued. One fully
+# qualified host name per line. Lines starting with # are ignored.
+#
+# Be sure to 'include letsencrypt' in any server blocks that enable
+# https.
+#
+# Example line:
+#www.example.org
