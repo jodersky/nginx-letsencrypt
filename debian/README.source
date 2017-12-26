@@ -1,0 +1,10 @@
+nginx-letsencrypt for Debian
+---------------------------
+
+<this file describes information about the source package, see Debian policy
+manual section 4.14. You WILL either need to modify or delete this file>
+
+
+
+ -- Jakob Odersky <jakob@odersky.com>  Tue, 26 Dec 2017 13:05:55 +0100
+
