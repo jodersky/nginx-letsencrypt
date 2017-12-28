@@ -24,15 +24,14 @@ nginx-letsencrypt \- certificates for virtual hosts managed by nginx
 .RI [ --test ]
 .SH DESCRIPTION
 Issue certificates from letsencrypt for virtual hosts managed by nginx.
-.PP
-.\" TeX users may be more comfortable with the \fB<whatever>\fP and
-.\" \fI<whatever>\fP escape sequences to invode bold face and italics,
-.\" respectively.
-\fBnginx-letsencrypt\fP is a program that...
 .SH OPTIONS
 .TP
 .B \--test
 Obtain a test certificate instead of a real one (this is useful to avoid rate-limiting).
+.SH FILES
+.TP
+.B /etc/nginx/letsencrypt
+Include this file in nginx server blocks to enable HTTPS.
 .SH SEE ALSO
 .BR nginx (8),
 .BR certbot (1).
