@@ -1,8 +1,9 @@
-#!/bin/sh
+#!/bin/bash
 # Obtain or renew certificates from letsencrypt, to be used with nginx
 # webroot verification.
 #
-# Domains to be certified are defined in /etc/nginx/domains.
+# A certificate will be issued for all server names defined in server
+# blocks that contain 'include letsencrypt'.
 #
 # The pre-hook is used to remove snakeoil certificates that are
 # required to bootstrap nginx configurations (nginx fails to start
@@ -10,16 +11,26 @@
 # not overwrite foreign certificates, as described in this issue
 # https://github.com/certbot/certbot/issues/3396
 set -o exiterr
-set -o unset
 
+# TODO: make email configurable
 email="jakob@odersky.com"
 
-extra_flags=""
+extra_flags=()
 if [ "$1" = --test ]; then
-    extra_flags="--test-cert"
+    extra_flags+=("--test-cert")
 fi
 
-certbot certonly $extra_flags \
+sites_enabled=($(
+    find /etc/nginx/sites-enabled/ \
+	 -not -type d -exec \
+	 grep -q -e '^[[:space:]]*[^#][[:space:]]*include letsencrypt' {} \; \
+	 -print))
+host_lines=$(sed -n \
+		 's/^[[:space:]]*[^#][[:space:]]*server_name \([^_].*\);/\1/p' \
+		 "${sites_enabled[@]}")
+hosts=$(echo "${host_lines[@]}" | tr "[:space:]" ",")
+
+certbot certonly "${extra_flags[@]}" \
 	--noninteractive \
 	--agree-tos \
 	--email "$email" \
@@ -27,4 +38,4 @@ certbot certonly $extra_flags \
 	--webroot --webroot-path /var/www/letsencrypt \
 	--pre-hook "sh -c '(openssl x509 -in /etc/letsencrypt/live/nginx/fullchain.pem -noout -text) | grep --quiet letsencrypt || rm -r /etc/letsencrypt/live/nginx'" \
 	--post-hook "systemctl reload nginx" \
-	-d "$(grep "^[^#;]" /etc/nginx/letsencryptdomains | paste --delimiter=, --serial)"
+	-d "$hosts"
