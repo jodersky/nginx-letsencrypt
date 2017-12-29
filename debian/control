@@ -8,7 +8,7 @@ Vcs-Git: https://github.com/jodersky/nginx-letsencrypt.git
 
 Package: nginx-letsencrypt
 Architecture: all
-Depends: nginx, letsencrypt, ${misc:Depends}
+Depends: nginx, letsencrypt, ssl-cert, ${misc:Depends}
 Description: Issue certificates by letsencrypt for nginx virtual hosts.
  Simplify the process by which letsencrypt certificates are issued for virtual
  hosts controlled by nginx.
