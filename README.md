@@ -74,6 +74,10 @@ Given the following server block configuration in
 Running `nginx-letsencrypt` will issue certificates for
 "foo.example.org" and "bar.example.com".
 
+## Notes
+nginx-letsencrypt is a thin wrapper around certbot. It will read
+/etc/letsencrypt/cli.ini for settings such as email.
+
 ## Copying
 This project is released under the terms of the GPL license. See
 LICENSE for details.

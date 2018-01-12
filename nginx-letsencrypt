@@ -12,8 +12,6 @@
 # https://github.com/certbot/certbot/issues/3396
 set -o errexit
 
-email="jakob@odersky.com"
-
 extra_flags=()
 if [ "$1" = --test ]; then
     extra_flags+=("--test-cert")
@@ -51,7 +49,6 @@ mkdir --parents /var/www/letsencrypt
 certbot certonly "${extra_flags[@]}" \
 	--noninteractive \
 	--agree-tos \
-	--email "$email" \
 	--cert-name nginx \
 	--webroot --webroot-path /var/www/letsencrypt \
 	--pre-hook "sh -c '(openssl x509 -in /etc/letsencrypt/live/nginx/fullchain.pem -noout -text) | grep --quiet letsencrypt || rm -r /etc/letsencrypt/live/nginx'" \
