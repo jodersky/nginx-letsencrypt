@@ -10,9 +10,8 @@
 # without ssl certificates). The hook is required because certbot does
 # not overwrite foreign certificates, as described in this issue
 # https://github.com/certbot/certbot/issues/3396
-set -o exiterr
+set -o errexit
 
-# TODO: make email configurable
 email="jakob@odersky.com"
 
 extra_flags=()
@@ -21,15 +20,34 @@ if [ "$1" = --test ]; then
 fi
 
 sites_enabled=($(
-    find /etc/nginx/sites-enabled/ \
-	 -not -type d -exec \
-	 grep -q -e '^[[:space:]]*[^#][[:space:]]*include letsencrypt' {} \; \
-	 -print))
-host_lines=$(sed -n \
-		 's/^[[:space:]]*[^#][[:space:]]*server_name \([^_].*\);/\1/p' \
-		 "${sites_enabled[@]}")
-hosts=$(echo "${host_lines[@]}" | tr "[:space:]" ",")
+		   find /etc/nginx/sites-enabled/ \
+			-not -type d \
+			-exec grep -q -e '^[^#]*include letsencrypt' {} \; \
+			-print))
 
+if [[ ${#sites_enabled[@]} -eq 0 ]]; then
+    # no sites use ssl, exit immediately
+    exit 0
+fi
+
+host_lines=($(sed --quiet \
+		  's/^[^#]*server_name \([^_].*\);/\1/p' \
+		  "${sites_enabled[@]}"))
+hosts=$(echo -n "${host_lines[@]}" | tr "[:space:]" ",")
+
+function cleanup() {
+    mkdir --parents /etc/letsencrypt/live/nginx
+    cp --no-clobber \
+       /etc/ssl/private/ssl-cert-snakeoil.key \
+       /etc/letsencrypt/live/nginx/privkey.pem
+    cp --no-clobber \
+       /etc/ssl/certs/ssl-cert-snakeoil.pem \
+       /etc/letsencrypt/live/nginx/fullchain.pem
+    service nginx reload
+}
+trap cleanup ERR
+
+mkdir --parents /var/www/letsencrypt
 certbot certonly "${extra_flags[@]}" \
 	--noninteractive \
 	--agree-tos \
@@ -37,5 +55,6 @@ certbot certonly "${extra_flags[@]}" \
 	--cert-name nginx \
 	--webroot --webroot-path /var/www/letsencrypt \
 	--pre-hook "sh -c '(openssl x509 -in /etc/letsencrypt/live/nginx/fullchain.pem -noout -text) | grep --quiet letsencrypt || rm -r /etc/letsencrypt/live/nginx'" \
-	--post-hook "systemctl reload nginx" \
 	-d "$hosts"
+
+service nginx reload

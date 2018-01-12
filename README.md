@@ -26,7 +26,7 @@ environment:
   - webroot: does not require a server shutdown and offers isolation,
     however it requires manual intervention to bootstrap a system with
     an initial certificate, since nginx will not start if the `ssl`
-    directive is set and there are no certificates. (Therefore one
+    directive is set and there are no certificates. (Therefore, one
     would be required to first configure the webroot, run certbot and
     then add an ssl entry).
 
