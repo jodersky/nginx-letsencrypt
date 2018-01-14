@@ -4,19 +4,34 @@
 #
 # A certificate will be issued for all server names defined in server
 # blocks that contain 'include letsencrypt'.
-#
-# The pre-hook is used to remove snakeoil certificates that are
-# required to bootstrap nginx configurations (nginx fails to start
-# without ssl certificates). The hook is required because certbot does
-# not overwrite foreign certificates, as described in this issue
-# https://github.com/certbot/certbot/issues/3396
 set -o errexit
 
-extra_flags=()
-if [ "$1" = --test ]; then
-    extra_flags+=("--test-cert")
-fi
+opts=$(getopt -o hn --long help,test -n 'nginx-letsencrypt' -- "$@")
+eval set --"$opts"
 
+extra_flags=()
+while true; do
+    case "$1" in
+	-h|--help)
+	    shift
+	    echo "Usage: $0 [-n|--test]"
+	    exit 0
+	    ;;
+	-n|--test)
+	    shift
+	    extra_flags+=("--test-cert")
+	    ;;
+	--)
+	    shift;
+	    break
+	    ;;
+	*) echo "Internal error!"
+	   exit 1
+	   ;;
+    esac
+done
+
+# Any site configuration files that use letsencrypt
 sites_enabled=($(
 		   find /etc/nginx/sites-enabled/ \
 			-not -type d \
@@ -28,12 +43,15 @@ if [[ ${#sites_enabled[@]} -eq 0 ]]; then
     exit 0
 fi
 
+# Extract server names from enabled sites
 host_lines=($(sed --quiet \
 		  's/^[^#]*server_name \([^_].*\);/\1/p' \
 		  "${sites_enabled[@]}"))
 hosts=$(echo -n "${host_lines[@]}" | tr "[:space:]" ",")
 
-function cleanup() {
+# Make sure that *any* certificate exists so that nginx can start. If
+# a certificate or key is missing, copy snakeoil certificates instead.
+function ensure_certificate() {
     mkdir --parents /etc/letsencrypt/live/nginx
     cp --no-clobber \
        /etc/ssl/private/ssl-cert-snakeoil.key \
@@ -43,7 +61,21 @@ function cleanup() {
        /etc/letsencrypt/live/nginx/fullchain.pem
     service nginx reload
 }
-trap cleanup ERR
+# Ensure that a certificate exists if this script is encounters an
+# error.
+trap ensure_certificate ERR
+
+# Issue letsencrypt certificates. Snakeoil certificates that are
+# required to bootstrap nginx configurations (nginx fails to start
+# without ssl certificates) are removed. The explicit removal is
+# required because certbot does not overwrite foreign certificates, as
+# described in this issue
+# https://github.com/certbot/certbot/issues/3396
+ensure_certificate
+if ! (openssl x509 -in /etc/letsencrypt/live/nginx/fullchain.pem -noout -text \
+	  | grep --quiet letsencrypt); then
+    rm -r /etc/letsencrypt/live/nginx
+fi
 
 mkdir --parents /var/www/letsencrypt
 certbot certonly "${extra_flags[@]}" \
@@ -51,7 +83,6 @@ certbot certonly "${extra_flags[@]}" \
 	--agree-tos \
 	--cert-name nginx \
 	--webroot --webroot-path /var/www/letsencrypt \
-	--pre-hook "sh -c '(openssl x509 -in /etc/letsencrypt/live/nginx/fullchain.pem -noout -text) | grep --quiet letsencrypt || rm -r /etc/letsencrypt/live/nginx'" \
 	-d "$hosts"
 
-service nginx reload
+ensure_certificate

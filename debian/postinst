@@ -20,13 +20,7 @@ set -e
 
 case "$1" in
     configure)
-	if [ ! -e /etc/letsencrypt/live/nginx/fullchain.pem ]; then
-	    mkdir -p /etc/letsencrypt/live/nginx
-	    cp /etc/ssl/certs/ssl-cert-snakeoil.pem  \
-	       /etc/letsencrypt/live/nginx/fullchain.pem
-	    cp /etc/ssl/private/ssl-cert-snakeoil.key \
-	       /etc/letsencrypt/live/nginx/privkey.pem
-	fi
+	nginx-letsencrypt
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
